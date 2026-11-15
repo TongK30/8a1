@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nhập Điểm & Vinh Danh Học Tập - Lớp 8A1</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    @keyframes popReveal {
+      0% { transform: scale(0.75) translateY(15px); opacity: 0; }
+      70% { transform: scale(1.04) translateY(-2px); opacity: 1; }
+      100% { transform: scale(1) translateY(0); opacity: 1; }
+    }
+    .animate-reveal {
+      animation: popReveal 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+    .chalkboard-stage {
+      background: radial-gradient(circle at center, #14532d 0%, #064e3b 65%, #022c22 100%);
+      border: 10px solid #b45309;
+      box-shadow: inset 0 0 40px rgba(0,0,0,0.55), 0 20px 35px -10px rgba(0,0,0,0.3);
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+
+  <!-- Header -->
+  <header class="bg-indigo-600 text-white shadow-md sticky top-0 z-30">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="bg-white/20 p-2 rounded-lg">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-lg sm:text-xl font-bold tracking-tight">HỆ THỐNG NHẬP ĐIỂM - LỚP 8A1</h1>
+          <p class="text-xs text-indigo-100">Sĩ số: 44 học sinh • 8 môn học</p>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2">
+        <button onclick="switchTab('form')" id="tabBtnForm" class="px-3.5 py-2 rounded-lg text-sm font-semibold bg-white text-indigo-700 shadow-sm transition">
+          Nhập Điểm
+        </button>
+        <button onclick="switchTab('table')" id="tabBtnTable" class="px-3.5 py-2 rounded-lg text-sm font-semibold text-indigo-100 hover:bg-indigo-500 transition">
+          Bảng Tổng Hợp (<span id="submittedBadge">0</span>/44)
+        </button>
+        <button onclick="requestHonorTab()" id="tabBtnHonor" class="px-3.5 py-2 rounded-lg text-sm font-semibold text-amber-200 hover:bg-indigo-500 transition flex items-center gap-1.5">
+          <span>🏆 Bảng Vinh Danh</span>
+          <span id="honorLockIcon" class="text-xs">🔒</span>
+        </button>
+        <button onclick="openSettingsModal()" title="Cấu hình kết nối" class="p-2 rounded-lg bg-indigo-700 hover:bg-indigo-800 text-white transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="max-w-6xl mx-auto px-4 py-6">
+
+    <!-- Status Banner -->
+    <div id="syncStatusBanner" class="mb-5 px-4 py-2.5 rounded-xl text-sm flex items-center justify-between bg-emerald-50 border border-emerald-200 text-emerald-800">
+      <div class="flex items-center gap-2">
+        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500" id="syncDot"></span>
+        <span id="syncText">Đã kết nối Google Sheets • Dữ liệu điểm tự động đồng bộ.</span>
+      </div>
+      <button onclick="syncFromGoogleSheet(true)" id="btnManualSync" class="text-xs font-semibold underline hover:text-indigo-700">Làm mới dữ liệu</button>
+    </div>
+
+    <!-- TAB 1: FORM NHẬP ĐIỂM -->
+    <section id="viewForm" class="max-w-2xl mx-auto space-y-5">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="bg-gradient-to-r from-indigo-50 to-blue-50 px-6 py-4 border-b border-slate-200">
+          <h2 class="text-base font-bold text-slate-800">Phiếu Nhập Điểm Cá Nhân</h2>
+          <p class="text-xs text-slate-600 mt-0.5">Chọn đúng họ tên của em, sau đó nhập điểm thang 10 (có thể dùng dấu chấm hoặc dấu phẩy).</p>
+        </div>
+
+        <form id="scoreForm" class="p-6 space-y-5">
+          <div class="relative">
+            <label class="block text-sm font-semibold text-slate-700 mb-1.5">1. Họ và tên học sinh <span class="text-red-500">*</span></label>
+            <div class="relative">
+              <input type="text" id="studentSearchInput" autocomplete="off" placeholder="Nhấn để chọn hoặc gõ tên học sinh..."
+                class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm font-medium bg-white"
+                onfocus="showDropdown()" oninput="filterStudents()">
+              <input type="hidden" id="selectedStudent" required>
+              <button type="button" onclick="toggleDropdown()" class="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+              </button>
+            </div>
+            <div id="studentDropdown" class="hidden absolute z-20 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-64 overflow-y-auto divide-y divide-slate-100">
+            </div>
+            <p id="studentStatusNote" class="text-xs mt-1.5 hidden"></p>
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <label class="block text-sm font-semibold text-slate-700">2. Điểm các môn học <span class="text-red-500">*</span></label>
+              <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700">
+                ĐTB tạm tính: <span id="liveAverage">--</span>
+              </span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              <div>
+                <label class="block text-xs font-medium text-slate-600 mb-1">Ngữ Văn</label>
+                <input type="text" inputmode="decimal" data-subject="nguVan" placeholder="0 - 10" required
+                  class="score-input w-full px-3.5 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-600 mb-1">Công Nghệ</label>
+                <input type="text" inputmode="decimal" data-subject="congNghe" placeholder="0 - 10" required
+                  class="score-input w-full px-3.5 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-600 mb-1">Toán</label>
+                <input type="text" inputmode="decimal" data-subject="toan" placeholder="0 - 10" required
+                  class="score-input w-full px-3.5 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-600 mb-1">GDCD</label>
+                <input type="text" inputmode="decimal" data-subject="gdcd" placeholder="0 - 10" required
+                  class="score-input w-full px-3.5 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-600 mb-1">KHTN</label>
+                <input type="text" inputmode="decimal" data-subject="khtn" placeholder="0 - 10" required
+                  class="score-input w-full px-3.5 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-600 mb-1">Tin Học</label>
+                <input type="text" inputmode="decimal" data-subject="tinHoc" placeholder="0 - 10" required
+                  class="score-input w-full px-3.5 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-600 mb-1">Lịch sử & Địa lí</label>
+                <input type="text" inputmode="decimal" data-subject="suDia" placeholder="0 - 10" required
+                  class="score-input w-full px-3.5 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-600 mb-1">Tiếng Anh</label>
+                <input type="text" inputmode="decimal" data-subject="tiengAnh" placeholder="0 - 10" required
+                  class="score-input w-full px-3.5 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm">
+              </div>
+            </div>
+          </div>
+
+          <div class="pt-2 flex items-center gap-3">
+            <button type="submit" id="submitBtn" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 px-4 rounded-xl shadow-sm transition flex items-center justify-center gap-2">
+              <span>Gửi Điểm</span>
+            </button>
+            <button type="button" onclick="resetForm()" class="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-600 hover:bg-slate-100 text-sm font-medium transition">
+              Xóa trắng
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div id="postSubmitHonorCard" class="hidden bg-gradient-to-r from-amber-500 to-orange-500 rounded-2xl p-5 text-white shadow-lg flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-3.5">
+          <div class="text-3xl bg-white/20 p-2.5 rounded-xl">🏆</div>
+          <div>
+            <h3 class="font-bold text-base" id="postSubmitTitle">Đã ghi nhận điểm thành công!</h3>
+            <p class="text-xs text-amber-50 mt-0.5">Khu vực Bảng Vinh Danh đang được khóa bảo mật.</p>
+          </div>
+        </div>
+        <button onclick="requestHonorTab()" class="w-full sm:w-auto px-4 py-2.5 bg-white text-amber-700 hover:bg-amber-50 font-bold text-sm rounded-xl shadow transition whitespace-nowrap">
+          🔐 Mở Bảng Vinh Danh
+        </button>
+      </div>
+    </section>
+
+    <!-- TAB 2: BẢNG TỔNG HỢP GIÁO VIÊN -->
+    <section id="viewTable" class="hidden space-y-4">
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+          <p class="text-xs text-slate-500 font-medium">Tổng sĩ số</p>
+          <p class="text-2xl font-bold text-slate-800 mt-1">44</p>
+        </div>
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+          <p class="text-xs text-emerald-600 font-medium">Đã nộp điểm</p>
+          <p class="text-2xl font-bold text-emerald-600 mt-1" id="statSubmitted">0</p>
+        </div>
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+          <p class="text-xs text-rose-600 font-medium">Chưa nộp</p>
+          <p class="text-2xl font-bold text-rose-600 mt-1" id="statPending">44</p>
+        </div>
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+          <p class="text-xs text-indigo-600 font-medium">ĐTB chung cả lớp</p>
+          <p class="text-2xl font-bold text-indigo-600 mt-1" id="statClassAvg">--</p>
+        </div>
+      </div>
+
+      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-3">
+        <div class="flex flex-wrap items-center gap-2">
+          <input type="text" id="tableSearchInput" oninput="renderTable()" placeholder="Tìm tên học sinh..."
+            class="px-3 py-1.5 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+          <select id="statusFilter" onchange="renderTable()" class="px-3 py-1.5 rounded-lg border border-slate-300 text-sm bg-white outline-none">
+            <option value="all">Tất cả (44)</option>
+            <option value="submitted">Đã nộp</option>
+            <option value="pending">Chưa nộp</option>
+          </select>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button onclick="exportToCSV()" class="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold transition flex items-center gap-1.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+            Xuất Excel (.CSV)
+          </button>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-x-auto">
+        <table class="w-full text-left border-collapse text-sm">
+          <thead>
+            <tr class="bg-slate-100 border-b border-slate-200 text-slate-700 text-xs uppercase">
+              <th class="py-3 px-3 font-bold">STT</th>
+              <th class="py-3 px-3 font-bold min-w-[140px]">Họ và tên</th>
+              <th class="py-3 px-2 font-bold text-center">Văn</th>
+              <th class="py-3 px-2 font-bold text-center">C.Nghệ</th>
+              <th class="py-3 px-2 font-bold text-center">Toán</th>
+              <th class="py-3 px-2 font-bold text-center">GDCD</th>
+              <th class="py-3 px-2 font-bold text-center">KHTN</th>
+              <th class="py-3 px-2 font-bold text-center">Tin</th>
+              <th class="py-3 px-2 font-bold text-center">Sử-Địa</th>
+              <th class="py-3 px-2 font-bold text-center">T.Anh</th>
+              <th class="py-3 px-3 font-bold text-center text-indigo-700">ĐTB</th>
+              <th class="py-3 px-3 font-bold text-center">Thao tác</th>
+            </tr>
+          </thead>
+          <tbody id="scoreTableBody" class="divide-y divide-slate-100">
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- TAB 3: TẤM BẢNG VÀNG VINH DANH SÂN KHẤU -->
+    <section id="viewHonor" class="hidden space-y-6">
+
+      <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-3">
+        <div class="flex flex-wrap items-center gap-2.5">
+          <label for="topCountSelect" class="text-xs font-bold text-slate-700 uppercase tracking-wide">Chọn số lượng Top:</label>
+          <select id="topCountSelect" onchange="resetHonorReveal()" class="px-3.5 py-2 rounded-xl bg-amber-50 text-amber-900 border border-amber-300 text-sm font-extrabold outline-none cursor-pointer">
+            <option value="3">Top 3 Cao Nhất (3 lần bấm)</option>
+            <option value="5" selected>Top 5 Cao Nhất (5 lần bấm)</option>
+            <option value="10">Top 10 Cao Nhất (10 lần bấm)</option>
+            <option value="15">Top 15 Cao Nhất (15 lần bấm)</option>
+          </select>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <button onclick="revealNextStudent()" id="btnRevealNext" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-extrabold text-sm shadow-md transition transform active:scale-95 flex items-center gap-2">
+            <span>🎉 Công bố bạn tiếp theo</span>
+            <span id="revealCounterBadge" class="px-2 py-0.5 rounded-full bg-black/25 text-xs">0/5</span>
+          </button>
+
+          <button onclick="revealAllStudents()" id="btnRevealAll" class="px-3.5 py-2.5 rounded-xl border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-800 text-xs font-bold transition">
+            Mở tất cả
+          </button>
+
+          <button onclick="resetHonorReveal()" title="Ẩn lại để bấm công bố từ đầu" class="px-3.5 py-2.5 rounded-xl border border-slate-300 hover:bg-slate-100 text-slate-600 text-xs font-semibold transition">
+            ↺ Ẩn lại
+          </button>
+
+          <button onclick="lockHonorBoard()" title="Khóa ngay lập tức" class="px-3.5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition">
+            🔒 Khóa lại
+          </button>
+        </div>
+      </div>
+
+      <div class="chalkboard-stage rounded-3xl p-6 sm:p-8 text-white relative overflow-hidden">
+        <div class="flex justify-between items-start opacity-90 pointer-events-none select-none mb-2">
+          <div class="flex gap-1 text-2xl">🎈🎉✨</div>
+          <div class="px-3 py-1 rounded-full bg-amber-400/20 border border-amber-300/40 text-amber-200 text-[11px] font-bold tracking-widest uppercase">
+            Lễ Tuyên Dương & Khen Thưởng
+          </div>
+          <div class="flex gap-1 text-2xl">✨🎉🎈</div>
+        </div>
+
+        <div class="text-center max-w-2xl mx-auto mb-8">
+          <h2 class="text-2xl sm:text-4xl font-black tracking-wide text-amber-300 drop-shadow uppercase">
+            BẢNG VÀNG VINH DANH
+          </h2>
+          <div class="inline-block my-2 px-6 py-1 rounded-full bg-rose-700/90 border-2 border-amber-300 text-white font-extrabold text-lg sm:text-xl tracking-wider shadow">
+            LỚP 8A1
+          </div>
+          <p class="text-xs sm:text-sm text-emerald-100 font-semibold tracking-widest uppercase mt-1">
+            ✦ Chúc mừng các em đạt điểm cao nhất ✦
+          </p>
+        </div>
+
+        <div id="honorBoardStageGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-5xl mx-auto">
+        </div>
+
+        <div class="mt-8 pt-4 border-t border-emerald-700/60 flex flex-wrap items-center justify-between gap-2 text-xs text-emerald-200/80">
+          <span>Ghi nhận tự động từ Bảng điểm lớp 8A1</span>
+          <span id="stageStatusText" class="font-semibold text-amber-200">Nhấn nút "Công bố bạn tiếp theo" để xướng tên từng em!</span>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+        <div class="mb-4">
+          <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+            <span>🏅</span>
+            <span>Thủ Khoa Từng Bộ Môn</span>
+          </h3>
+          <p class="text-xs text-slate-500 mt-0.5">Học sinh đạt điểm cao nhất ở mỗi môn học (tính trên các bài đã nộp).</p>
+        </div>
+        <div id="subjectLeadersGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Modal Nhập Mật Khẩu Xem Vinh Danh -->
+  <div id="passwordModal" class="hidden fixed inset-0 bg-slate-900/70 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl space-y-4 border border-slate-200">
+      <div class="text-center space-y-1.5">
+        <div class="w-12 h-12 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center text-2xl mx-auto">
+          🔒
+        </div>
+        <h3 class="text-lg font-bold text-slate-800">Khu Vực Khóa Bảo Mật</h3>
+        <p class="text-xs text-slate-500">Vui lòng nhập mật khẩu giáo viên để mở Bảng Vinh Danh.</p>
+      </div>
+
+      <form onsubmit="verifyHonorPassword(event)" class="space-y-3" autocomplete="off">
+        <div>
+          <input type="password" id="honorPasswordInput" autocomplete="new-password" placeholder="••••••" required
+            class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-center text-lg font-bold tracking-widest">
+          <p id="passwordErrorMsg" class="hidden text-xs text-rose-600 font-medium text-center mt-1.5">
+            Mật khẩu không đúng. Truy cập bị từ chối!
+          </p>
+        </div>
+
+        <div class="flex gap-2 pt-1">
+          <button type="button" onclick="closePasswordModal()" class="flex-1 py-2.5 rounded-xl border border-slate-300 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition">
+            Đóng
+          </button>
+          <button type="submit" class="flex-1 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-sm font-bold shadow-sm transition">
+            Xác Nhận
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Cấu Hình Google Sheets -->
+  <div id="settingsModal" class="hidden fixed inset-0 bg-slate-900/50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl space-y-4">
+      <div class="flex items-center justify-between">
+        <h3 class="text-lg font-bold text-slate-800">Cài Đặt Kết Nối Dữ Liệu</h3>
+        <button onclick="closeSettingsModal()" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
+      </div>
+      
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 mb-1">Google Apps Script Web App URL</label>
+        <input type="url" id="scriptUrlInput" placeholder="https://script.google.com/macros/s/.../exec"
+          class="w-full px-3.5 py-2 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+        <p class="text-[11px] text-slate-500 mt-1">Đường dẫn đồng bộ dữ liệu điểm với trang tính Google Sheets.</p>
+      </div>
+
+      <div class="flex justify-end gap-2 pt-2">
+        <button onclick="closeSettingsModal()" class="px-4 py-2 rounded-lg border border-slate-300 text-sm font-medium text-slate-600 hover:bg-slate-50">Đóng</button>
+        <button onclick="saveSettings()" class="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold">Lưu cấu hình</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Thông Báo -->
+  <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-lg text-sm font-medium"></div>
+
+  <script>
+    // =========================================================================
+    // 👇 ĐÃ GẮN SẴN LINK API GOOGLE SHEETS CỦA BẠN 👇
+    const DEFAULT_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwFVtXZk5PJ9n85vve1K5f7ZPcadrlX_v3y9bVkyL1oTShNhw26gHJ3W7KR7M7uGDFh/exec";
+    const HONOR_SECRET_PASS = "8A1VIP"; // Mật khẩu mở Bảng Vinh Danh (bạn có thể đổi tại đây)
+    // =========================================================================
+
+    const STUDENTS = [
+      "Trâm Anh", "Kim Mẫn", "Tuyết Phương", "Bảo Trâm", "Ánh Như",
+      "Khả Khả", "Bảo Lam", "Tường An", "Nhất Huy", "Nhựt Duy",
+      "Anh Trịnh", "Ngọc Án", "Bảo Thu", "Khánh Ngọc", "Hân Hồ",
+      "Khánh Băng", "Hương Giang", "Minh Tiến", "Anh Quỳnh", "Thiên Thư",
+      "Kiều Oanh", "Gia Nhi", "Huệ Ngọc", "Anh Kiệt", "Thanh Tiến",
+      "Diễm Trân", "Đại Quang", "Hân Ngô", "Kim Ngọc", "Hồng Tươi",
+      "Ý Nguyễn", "Minh Thư", "Diễm Phúc", "Băng Châu", "Khá Vy",
+      "Bảo Ngân", "Ý Lương", "Yến Thi", "Tấn Phát", "Kim Nguyên",
+      "Triệu Vy", "Thảo My", "Hiếu Gia", "Khánh Vy"
+    ];
+
+    const SUBJECTS_META = [
+      { key: "nguVan", label: "Ngữ Văn", icon: "📖" },
+      { key: "congNghe", label: "Công Nghệ", icon: "⚙️" },
+      { key: "toan", label: "Toán", icon: "📐" },
+      { key: "gdcd", label: "GDCD", icon: "⚖️" },
+      { key: "khtn", label: "KHTN", icon: "🧪" },
+      { key: "tinHoc", label: "Tin Học", icon: "💻" },
+      { key: "suDia", label: "Lịch sử & Địa lí", icon: "🌍" },
+      { key: "tiengAnh", label: "Tiếng Anh", icon: "🔤" }
+    ];
+    const SUBJECT_KEYS = SUBJECTS_META.map(s => s.key);
+
+    let records = JSON.parse(localStorage.getItem('diem_8a1_records') || '{}');
+    const validDefaultUrl = (DEFAULT_SCRIPT_URL && DEFAULT_SCRIPT_URL.startsWith('http')) ? DEFAULT_SCRIPT_URL.trim() : '';
+    let scriptUrl = validDefaultUrl || localStorage.getItem('diem_8a1_script_url') || '';
+
+    let isHonorUnlocked = false;
+    let revealedCount = 0;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      updateSyncUI();
+      updateHonorLockUI();
+      renderDropdown(STUDENTS);
+      renderTable();
+      if (scriptUrl) syncFromGoogleSheet(false);
+
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('#studentSearchInput') && !e.target.closest('#studentDropdown')) {
+          document.getElementById('studentDropdown').classList.add('hidden');
+        }
+      });
+
+      document.querySelectorAll('.score-input').forEach(inp => {
+        inp.addEventListener('input', handleScoreInput);
+      });
+    });
+
+    function showToast(msg, isError = false) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.className = `fixed bottom-5 right-5 z-50 transition-all duration-300 px-4 py-3 rounded-xl shadow-lg text-sm font-medium ${isError ? 'bg-rose-600 text-white' : 'bg-slate-900 text-white'}`;
+      setTimeout(() => {
+        toast.classList.add('translate-y-20', 'opacity-0');
+      }, 3200);
+    }
+
+    function switchTab(tab) {
+      if (tab !== 'honor' && isHonorUnlocked) {
+        isHonorUnlocked = false;
+        revealedCount = 0;
+        updateHonorLockUI();
+      }
+
+      document.getElementById('viewForm').classList.toggle('hidden', tab !== 'form');
+      document.getElementById('viewTable').classList.toggle('hidden', tab !== 'table');
+      document.getElementById('viewHonor').classList.toggle('hidden', tab !== 'honor');
+
+      document.getElementById('tabBtnForm').className = tab === 'form'
+        ? 'px-3.5 py-2 rounded-lg text-sm font-semibold bg-white text-indigo-700 shadow-sm transition'
+        : 'px-3.5 py-2 rounded-lg text-sm font-semibold text-indigo-100 hover:bg-indigo-500 transition';
+
+      document.getElementById('tabBtnTable').className = tab === 'table'
+        ? 'px-3.5 py-2 rounded-lg text-sm font-semibold bg-white text-indigo-700 shadow-sm transition'
+        : 'px-3.5 py-2 rounded-lg text-sm font-semibold text-indigo-100 hover:bg-indigo-500 transition';
+
+      document.getElementById('tabBtnHonor').className = tab === 'honor'
+        ? 'px-3.5 py-2 rounded-lg text-sm font-semibold bg-amber-400 text-slate-900 shadow-sm transition flex items-center gap-1.5'
+        : 'px-3.5 py-2 rounded-lg text-sm font-semibold text-amber-200 hover:bg-indigo-500 transition flex items-center gap-1.5';
+
+      if (tab === 'table') {
+        renderTable();
+        if (scriptUrl) syncFromGoogleSheet(false);
+      } else if (tab === 'honor') {
+        renderHonorBoard();
+        if (scriptUrl) syncFromGoogleSheet(false);
+      }
+    }
+
+    // ==================== XỬ LÝ MẬT KHẨU & VINH DANH ====================
+    function updateHonorLockUI() {
+      const icon = document.getElementById('honorLockIcon');
+      icon.textContent = isHonorUnlocked ? '🔓' : '🔒';
+    }
+
+    function requestHonorTab() {
+      if (isHonorUnlocked) {
+        switchTab('honor');
+      } else {
+        document.getElementById('honorPasswordInput').value = '';
+        document.getElementById('passwordErrorMsg').classList.add('hidden');
+        document.getElementById('passwordModal').classList.remove('hidden');
+        setTimeout(() => document.getElementById('honorPasswordInput').focus(), 100);
+      }
+    }
+
+    function closePasswordModal() {
+      document.getElementById('honorPasswordInput').value = '';
+      document.getElementById('passwordModal').classList.add('hidden');
+    }
+
+    function verifyHonorPassword(e) {
+      e.preventDefault();
+      const inputVal = document.getElementById('honorPasswordInput').value;
+      if (inputVal === HONOR_SECRET_PASS) {
+        isHonorUnlocked = true;
+        revealedCount = 0;
+        document.getElementById('honorPasswordInput').value = '';
+        updateHonorLockUI();
+        closePasswordModal();
+        switchTab('honor');
+        showToast('🔓 Đã mở khóa Bảng Vinh Danh!');
+      } else {
+        document.getElementById('passwordErrorMsg').classList.remove('hidden');
+        document.getElementById('honorPasswordInput').value = '';
+        document.getElementById('honorPasswordInput').focus();
+      }
+    }
+
+    function lockHonorBoard() {
+      isHonorUnlocked = false;
+      revealedCount = 0;
+      updateHonorLockUI();
+      switchTab('form');
+      showToast('🔒 Đã khóa Bảng Vinh Danh.');
+    }
+
+    function getTopStudentsList() {
+      const topLimit = parseInt(document.getElementById('topCountSelect').value, 10) || 5;
+      const submittedList = STUDENTS
+        .filter(name => records[name] && !isNaN(parseFloat(records[name].dtb)))
+        .map(name => ({ name, ...records[name], dtbNum: parseFloat(records[name].dtb) }))
+        .sort((a, b) => b.dtbNum - a.dtbNum);
+
+      let currentRank = 1;
+      submittedList.forEach((item, idx) => {
+        if (idx > 0 && item.dtbNum < submittedList[idx - 1].dtbNum) {
+          currentRank = idx + 1;
+        }
+        item.rank = currentRank;
+      });
+
+      return submittedList.slice(0, topLimit);
+    }
+
+    function revealNextStudent() {
+      const topList = getTopStudentsList();
+      if (topList.length === 0) {
+        showToast('Chưa có học sinh nào nộp điểm!', true);
+        return;
+      }
+      if (revealedCount < topList.length) {
+        revealedCount++;
+        const justRevealedIndex = topList.length - revealedCount;
+        const student = topList[justRevealedIndex];
+        renderHonorBoard(justRevealedIndex);
+
+        if (typeof confetti === 'function') {
+          if (justRevealedIndex === 0) {
+            confetti({ particleCount: 150, spread: 90, origin: { y: 0.6 } });
+          } else {
+            confetti({ particleCount: 55, spread: 60, origin: { y: 0.7 } });
+          }
+        }
+        showToast(`🎉 Chúc mừng Hạng ${student.rank}: ${student.name} (${student.dtb} điểm)!`);
+      }
+    }
+
+    function revealAllStudents() {
+      const topList = getTopStudentsList();
+      if (topList.length === 0) return;
+      revealedCount = topList.length;
+      renderHonorBoard(-1);
+      if (typeof confetti === 'function') {
+        confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+      }
+    }
+
+    function resetHonorReveal() {
+      revealedCount = 0;
+      renderHonorBoard(-1);
+    }
+
+    function renderHonorBoard(newlyRevealedIdx = -1) {
+      const topList = getTopStudentsList();
+      const totalSlots = topList.length;
+      if (revealedCount > totalSlots) revealedCount = totalSlots;
+
+      const btnNext = document.getElementById('btnRevealNext');
+      const badge = document.getElementById('revealCounterBadge');
+      const stageStatus = document.getElementById('stageStatusText');
+
+      badge.textContent = `${revealedCount}/${totalSlots}`;
+      if (totalSlots === 0) {
+        btnNext.disabled = true;
+        btnNext.classList.add('opacity-50', 'cursor-not-allowed');
+        stageStatus.textContent = 'Chưa có dữ liệu điểm học sinh nộp.';
+      } else if (revealedCount >= totalSlots) {
+        btnNext.disabled = true;
+        btnNext.classList.add('opacity-60', 'cursor-not-allowed');
+        stageStatus.textContent = `🎊 Đã vinh danh đầy đủ ${totalSlots} gương mặt xuất sắc nhất lớp 8A1!`;
+      } else {
+        btnNext.disabled = false;
+        btnNext.classList.remove('opacity-50', 'opacity-60', 'cursor-not-allowed');
+        const nextRank = topList[totalSlots - 1 - revealedCount].rank;
+        stageStatus.textContent = `Sẵn sàng: Bấm nút để công bố Hạng ${nextRank} (${revealedCount}/${totalSlots} đã mở)`;
+      }
+
+      const gridEl = document.getElementById('honorBoardStageGrid');
+      if (totalSlots === 0) {
+        gridEl.innerHTML = `
+          <div class="col-span-full py-12 text-center bg-black/20 rounded-2xl border border-emerald-500/30">
+            <p class="text-4xl mb-2">📋</p>
+            <p class="text-sm text-emerald-100">Chưa có học sinh nào nộp điểm để hiển thị trên Bảng Vàng.</p>
+          </div>
+        `;
+      } else {
+        gridEl.innerHTML = topList.map((student, idx) => {
+          const isRevealed = idx >= (totalSlots - revealedCount);
+          const isJustNow = idx === newlyRevealedIdx;
+
+          let medal = '🎖️';
+          let cardStyle = 'bg-white/95 text-slate-800 border-amber-300';
+          let badgeStyle = 'bg-indigo-600 text-white';
+
+          if (student.rank === 1) {
+            medal = '👑';
+            cardStyle = 'bg-gradient-to-b from-amber-100 via-yellow-50 to-white text-slate-900 border-amber-400 ring-4 ring-amber-400/40';
+            badgeStyle = 'bg-amber-500 text-slate-950';
+          } else if (student.rank === 2) {
+            medal = '🥈';
+            cardStyle = 'bg-gradient-to-b from-slate-100 to-white text-slate-900 border-slate-300 ring-2 ring-slate-300/40';
+            badgeStyle = 'bg-slate-700 text-white';
+          } else if (student.rank === 3) {
+            medal = '🥉';
+            cardStyle = 'bg-gradient-to-b from-orange-100 to-white text-slate-900 border-orange-300 ring-2 ring-orange-300/40';
+            badgeStyle = 'bg-orange-600 text-white';
+          }
+
+          if (!isRevealed) {
+            return `
+              <div onclick="revealNextStudent()" title="Nhấn để công bố" class="cursor-pointer rounded-2xl border-2 border-dashed border-amber-300/50 bg-black/25 hover:bg-black/35 p-5 flex flex-col items-center justify-center text-center min-h-[168px] transition group">
+                <div class="w-12 h-12 rounded-full bg-amber-400/20 border border-amber-300/40 text-amber-300 flex items-center justify-center text-2xl font-black group-hover:scale-110 transition">
+                  ?
+                </div>
+                <span class="mt-2.5 text-xs font-extrabold uppercase tracking-wider text-amber-200">
+                  Vị trí Hạng ${student.rank}
+                </span>
+                <span class="text-[11px] text-emerald-200/75 mt-1">Đang chờ xướng tên...</span>
+              </div>
+            `;
+          }
+
+          return `
+            <div class="rounded-2xl border-2 ${cardStyle} p-5 flex flex-col items-center justify-center text-center min-h-[168px] shadow-xl ${isJustNow ? 'animate-reveal' : ''}">
+              <div class="flex items-center gap-2 mb-1">
+                <span class="text-2xl">${medal}</span>
+                <span class="text-xs font-black px-3 py-0.5 rounded-full ${badgeStyle} uppercase tracking-wider">
+                  Hạng ${student.rank}
+                </span>
+              </div>
+              <h3 class="text-lg sm:text-xl font-black text-slate-900 mt-1">${student.name}</h3>
+              <div class="mt-2 px-4 py-1 rounded-xl bg-emerald-700 text-amber-300 font-black text-lg shadow-xs">
+                ĐTB: ${student.dtb}
+              </div>
+              <p class="text-[11px] text-slate-600 mt-2 font-medium">
+                Toán: <b>${student.toan}</b> • Văn: <b>${student.nguVan}</b> • Anh: <b>${student.tiengAnh}</b>
+              </p>
+            </div>
+          `;
+        }).join('');
+      }
+
+      const allSubmitted = STUDENTS
+        .filter(name => records[name] && !isNaN(parseFloat(records[name].dtb)))
+        .map(name => ({ name, ...records[name] }));
+
+      const leadersGrid = document.getElementById('subjectLeadersGrid');
+      leadersGrid.innerHTML = SUBJECTS_META.map(subj => {
+        let maxScore = -1;
+        let topNames = [];
+
+        allSubmitted.forEach(st => {
+          const val = parseFloat(st[subj.key]);
+          if (!isNaN(val)) {
+            if (val > maxScore) {
+              maxScore = val;
+              topNames = [st.name];
+            } else if (val === maxScore) {
+              topNames.push(st.name);
+            }
+          }
+        });
+
+        return `
+          <div class="p-4 rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-white hover:shadow-sm transition">
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-xs font-bold text-slate-600 flex items-center gap-1.5">
+                <span>${subj.icon}</span> ${subj.label}
+              </span>
+              <span class="text-xs font-extrabold px-2 py-0.5 rounded-md ${maxScore >= 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-500'}">
+                ${maxScore >= 0 ? maxScore + ' đ' : '--'}
+              </span>
+            </div>
+            <p class="text-sm font-bold text-slate-800 leading-snug">
+              ${topNames.length > 0 ? topNames.join(', ') : '<span class="text-xs font-normal text-slate-400 italic">Chưa có dữ liệu</span>'}
+            </p>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // ==================== DROPDOWN CHỌN HỌC SINH ====================
+    function showDropdown() {
+      filterStudents();
+      document.getElementById('studentDropdown').classList.remove('hidden');
+    }
+
+    function toggleDropdown() {
+      const dd = document.getElementById('studentDropdown');
+      if (dd.classList.contains('hidden')) showDropdown();
+      else dd.classList.add('hidden');
+    }
+
+    function filterStudents() {
+      const q = document.getElementById('studentSearchInput').value.toLowerCase().trim();
+      const filtered = STUDENTS.filter(name => name.toLowerCase().includes(q));
+      renderDropdown(filtered);
+      document.getElementById('studentDropdown').classList.remove('hidden');
+    }
+
+    function renderDropdown(list) {
+      const dd = document.getElementById('studentDropdown');
+      if (list.length === 0) {
+        dd.innerHTML = `<div class="px-4 py-3 text-xs text-slate-400 text-center">Không tìm thấy tên học sinh</div>`;
+        return;
+      }
+      dd.innerHTML = list.map((name) => {
+        const idx = STUDENTS.indexOf(name) + 1;
+        const done = !!records[name];
+        return `
+          <div onclick="selectStudent('${name}')" class="px-4 py-2.5 hover:bg-indigo-50 cursor-pointer flex items-center justify-between text-sm">
+            <span><b class="text-slate-400 mr-1.5">${idx}.</b> ${name}</span>
+            ${done
+              ? '<span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">Đã nộp</span>'
+              : '<span class="text-[11px] font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">Chưa nộp</span>'}
+          </div>
+        `;
+      }).join('');
+    }
+
+    function selectStudent(name) {
+      document.getElementById('studentSearchInput').value = name;
+      document.getElementById('selectedStudent').value = name;
+      document.getElementById('studentDropdown').classList.add('hidden');
+
+      const note = document.getElementById('studentStatusNote');
+      if (records[name]) {
+        note.textContent = `⚠️ ${name} đã nộp điểm trước đó (ĐTB: ${records[name].dtb}). Gửi lại sẽ cập nhật điểm mới.`;
+        note.className = 'text-xs mt-1.5 text-amber-600 font-medium';
+        SUBJECT_KEYS.forEach(k => {
+          const el = document.querySelector(`[data-subject="${k}"]`);
+          if (el && records[name][k] !== undefined) el.value = records[name][k];
+        });
+        calculateLiveAverage();
+      } else {
+        note.textContent = `✓ Đang nhập điểm mới cho học sinh ${name}.`;
+        note.className = 'text-xs mt-1.5 text-emerald-600 font-medium';
+      }
+    }
+
+    function handleScoreInput(e) {
+      let val = e.target.value.replace(',', '.').replace(/[^0-9.]/g, '');
+      const parts = val.split('.');
+      if (parts.length > 2) val = parts[0] + '.' + parts.slice(1).join('');
+      e.target.value = val;
+
+      const num = parseFloat(val);
+      if (val !== '' && (isNaN(num) || num < 0 || num > 10)) {
+        e.target.classList.add('border-rose-500', 'bg-rose-50');
+      } else {
+        e.target.classList.remove('border-rose-500', 'bg-rose-50');
+      }
+      calculateLiveAverage();
+    }
+
+    function calculateLiveAverage() {
+      let sum = 0, count = 0;
+      document.querySelectorAll('.score-input').forEach(inp => {
+        const v = parseFloat(inp.value);
+        if (!isNaN(v) && v >= 0 && v <= 10) {
+          sum += v;
+          count++;
+        }
+      });
+      document.getElementById('liveAverage').textContent = count > 0 ? (sum / count).toFixed(2) : '--';
+    }
+
+    // ==================== GỬI FORM NHẬP ĐIỂM (ĐÃ SỬA CHUẨN APPS SCRIPT) ====================
+    document.getElementById('scoreForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const nameInput = document.getElementById('studentSearchInput').value.trim();
+      const matchedName = STUDENTS.find(s => s.toLowerCase() === nameInput.toLowerCase());
+
+      if (!matchedName) {
+        showToast('Vui lòng chọn đúng họ tên học sinh trong danh sách!', true);
+        return;
+      }
+
+      const payload = { name: matchedName };
+      let sum = 0;
+
+      for (const key of SUBJECT_KEYS) {
+        const raw = document.querySelector(`[data-subject="${key}"]`).value.trim();
+        const num = parseFloat(raw);
+        if (raw === '' || isNaN(num) || num < 0 || num > 10) {
+          showToast('Điểm các môn phải là số hợp lệ từ 0 đến 10!', true);
+          return;
+        }
+        payload[key] = Number(num.toFixed(2));
+        sum += payload[key];
+      }
+
+      payload.dtb = Number((sum / SUBJECT_KEYS.length).toFixed(2));
+      payload.timestamp = new Date().toLocaleString('vi-VN');
+
+      // Lưu cục bộ ngay lập tức
+      records[matchedName] = payload;
+      localStorage.setItem('diem_8a1_records', JSON.stringify(records));
+      renderTable();
+
+      if (scriptUrl) {
+        const btn = document.getElementById('submitBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<span>Đang gửi lên Google Sheets...</span>';
+        try {
+          // Sử dụng text/plain;charset=utf-8 để Google Apps Script nhận trọn vẹn e.postData.contents
+          await fetch(scriptUrl, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(payload)
+          });
+          showToast(`✅ Đã gửi điểm của ${matchedName} lên Google Sheets!`);
+          // Chờ 1.5 giây rồi kéo lại dữ liệu từ Sheets để xác nhận
+          setTimeout(() => syncFromGoogleSheet(false), 1500);
+        } catch (err) {
+          showToast('Lỗi kết nối mạng, đã lưu tạm trên trình duyệt!', true);
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML = '<span>Gửi Điểm</span>';
+        }
+      } else {
+        showToast(`✅ Đã lưu điểm của ${matchedName} (ĐTB: ${payload.dtb})!`);
+      }
+
+      const postCard = document.getElementById('postSubmitHonorCard');
+      document.getElementById('postSubmitTitle').textContent = `Đã ghi nhận điểm của ${matchedName} (ĐTB: ${payload.dtb})!`;
+      postCard.classList.remove('hidden');
+
+      resetForm();
+    });
+
+    function resetForm() {
+      document.getElementById('scoreForm').reset();
+      document.getElementById('selectedStudent').value = '';
+      document.getElementById('studentStatusNote').classList.add('hidden');
+      document.getElementById('liveAverage').textContent = '--';
+    }
+
+    // ==================== BẢNG TỔNG HỢP ====================
+    function renderTable() {
+      const search = document.getElementById('tableSearchInput').value.toLowerCase().trim();
+      const filter = document.getElementById('statusFilter').value;
+      const tbody = document.getElementById('scoreTableBody');
+
+      let submittedCount = 0;
+      let totalAvg = 0;
+
+      STUDENTS.forEach(name => {
+        if (records[name]) {
+          submittedCount++;
+          totalAvg += Number(records[name].dtb || 0);
+        }
+      });
+
+      document.getElementById('submittedBadge').textContent = submittedCount;
+      document.getElementById('statSubmitted').textContent = submittedCount;
+      document.getElementById('statPending').textContent = STUDENTS.length - submittedCount;
+      document.getElementById('statClassAvg').textContent = submittedCount > 0 ? (totalAvg / submittedCount).toFixed(2) : '--';
+
+      const rowsHtml = STUDENTS.map((name, index) => {
+        const rec = records[name];
+        if (search && !name.toLowerCase().includes(search)) return '';
+        if (filter === 'submitted' && !rec) return '';
+        if (filter === 'pending' && rec) return '';
+
+        if (!rec) {
+          return `
+            <tr class="hover:bg-slate-50 text-slate-400">
+              <td class="py-2.5 px-3 font-medium">${index + 1}</td>
+              <td class="py-2.5 px-3 font-medium text-slate-700">${name}</td>
+              <td colspan="9" class="py-2.5 px-3 text-center text-xs italic">Chưa nhập điểm</td>
+              <td class="py-2.5 px-3 text-center">
+                <button onclick="editStudent('${name}')" class="text-xs font-semibold text-indigo-600 hover:underline">Nhập hộ</button>
+              </td>
+            </tr>
+          `;
+        }
+
+        return `
+          <tr class="hover:bg-slate-50">
+            <td class="py-2.5 px-3 font-medium text-slate-500">${index + 1}</td>
+            <td class="py-2.5 px-3 font-semibold text-slate-800">${name}</td>
+            <td class="py-2.5 px-2 text-center">${rec.nguVan}</td>
+            <td class="py-2.5 px-2 text-center">${rec.congNghe}</td>
+            <td class="py-2.5 px-2 text-center">${rec.toan}</td>
+            <td class="py-2.5 px-2 text-center">${rec.gdcd}</td>
+            <td class="py-2.5 px-2 text-center">${rec.khtn}</td>
+            <td class="py-2.5 px-2 text-center">${rec.tinHoc}</td>
+            <td class="py-2.5 px-2 text-center">${rec.suDia}</td>
+            <td class="py-2.5 px-2 text-center">${rec.tiengAnh}</td>
+            <td class="py-2.5 px-3 text-center font-bold text-indigo-700 bg-indigo-50/40">${rec.dtb}</td>
+            <td class="py-2.5 px-3 text-center">
+              <button onclick="editStudent('${name}')" class="text-xs font-semibold text-amber-600 hover:underline">Sửa</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      tbody.innerHTML = rowsHtml || `<tr><td colspan="12" class="py-6 text-center text-slate-400 text-sm">Không có dữ liệu phù hợp</td></tr>`;
+    }
+
+    function editStudent(name) {
+      switchTab('form');
+      selectStudent(name);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function exportToCSV() {
+      const headers = ['STT', 'Họ và tên', 'Ngữ Văn', 'Công Nghệ', 'Toán', 'GDCD', 'KHTN', 'Tin Học', 'Lịch sử & Địa lí', 'Tiếng Anh', 'Điểm TB', 'Trạng thái'];
+      const lines = [headers.join(',')];
+
+      STUDENTS.forEach((name, idx) => {
+        const r = records[name];
+        if (r) {
+          lines.push([idx + 1, `"${name}"`, r.nguVan, r.congNghe, r.toan, r.gdcd, r.khtn, r.tinHoc, r.suDia, r.tiengAnh, r.dtb, '"Đã nộp"'].join(','));
+        } else {
+          lines.push([idx + 1, `"${name}"`, '', '', '', '', '', '', '', '', '', '"Chưa nộp"'].join(','));
+        }
+      });
+
+      const blob = new Blob(['\uFEFF' + lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'Bang_Diem_Lop_8A1.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // ==================== CÀI ĐẶT HỆ THỐNG ====================
+    function openSettingsModal() {
+      document.getElementById('scriptUrlInput').value = scriptUrl;
+      document.getElementById('settingsModal').classList.remove('hidden');
+    }
+
+    function closeSettingsModal() {
+      document.getElementById('settingsModal').classList.add('hidden');
+    }
+
+    function saveSettings() {
+      scriptUrl = document.getElementById('scriptUrlInput').value.trim();
+      localStorage.setItem('diem_8a1_script_url', scriptUrl);
+      updateSyncUI();
+      closeSettingsModal();
+      showToast('Đã lưu cấu hình kết nối!');
+      if (scriptUrl) syncFromGoogleSheet(true);
+    }
+
+    function updateSyncUI() {
+      const banner = document.getElementById('syncStatusBanner');
+      const dot = document.getElementById('syncDot');
+      const text = document.getElementById('syncText');
+      const btn = document.getElementById('btnManualSync');
+
+      if (scriptUrl) {
+        banner.className = 'mb-5 px-4 py-2.5 rounded-xl text-sm flex items-center justify-between bg-emerald-50 border border-emerald-200 text-emerald-800';
+        dot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-500';
+        text.textContent = 'Đã kết nối Google Sheets • Dữ liệu điểm tự động đồng bộ.';
+        btn.classList.remove('hidden');
+      } else {
+        banner.className = 'mb-5 px-4 py-2.5 rounded-xl text-sm flex items-center justify-between bg-amber-50 border border-amber-200 text-amber-800';
+        dot.className = 'w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse';
+        text.textContent = 'Chế độ lưu tạm trên trình duyệt. Hãy dán link Web App vào mã nguồn để tự động đồng bộ.';
+        btn.classList.add('hidden');
+      }
+    }
+
+    async function syncFromGoogleSheet(notify = false) {
+      if (!scriptUrl) return;
+      try {
+        // Thêm tham số t=Date.now() để tránh trình duyệt lấy dữ liệu cũ từ bộ nhớ đệm (cache)
+        const fetchUrl = scriptUrl + (scriptUrl.includes('?') ? '&' : '?') + 't=' + Date.now();
+        const res = await fetch(fetchUrl);
+        const json = await res.json();
+        if (json.status === 'success' && json.data) {
+          records = json.data;
+          localStorage.setItem('diem_8a1_records', JSON.stringify(records));
+          renderTable();
+          if (!document.getElementById('viewHonor').classList.contains('hidden')) {
+            renderHonorBoard(-1);
+          }
+          if (notify) showToast('Đã cập nhật dữ liệu mới nhất từ Google Sheets!');
+        }
+      } catch (e) {
+        console.error('Lỗi đồng bộ:', e);
+        if (notify) showToast('Không thể đọc dữ liệu từ Google Sheets. Hãy kiểm tra quyền Web App!', true);
+      }
+    }
+  </script>
+</body>
+</html>
