@@ -43,7 +43,7 @@
 
       <div class="flex flex-wrap items-center gap-2">
         <button onclick="switchTab('form')" id="tabBtnForm" class="px-3.5 py-2 rounded-lg text-sm font-semibold bg-white text-indigo-700 shadow-sm transition">
-          Nhập Điểm
+          Nhập / Sửa Điểm
         </button>
         <button onclick="requestHonorTab()" id="tabBtnHonor" class="px-3.5 py-2 rounded-lg text-sm font-semibold text-amber-200 hover:bg-indigo-500 transition flex items-center gap-1.5">
           <span>🏆 Bảng Vinh Danh</span>
@@ -71,12 +71,12 @@
       <button onclick="syncFromGoogleSheet(true)" id="btnManualSync" class="text-xs font-semibold underline hover:text-indigo-700">Làm mới dữ liệu</button>
     </div>
 
-    <!-- TAB 1: FORM NHẬP ĐIỂM -->
+    <!-- TAB 1: FORM NHẬP & CHỈNH SỬA ĐIỂM -->
     <section id="viewForm" class="max-w-2xl mx-auto space-y-5">
       <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
         <div class="bg-gradient-to-r from-indigo-50 to-blue-50 px-6 py-4 border-b border-slate-200">
-          <h2 class="text-base font-bold text-slate-800">Phiếu Nhập Điểm Cá Nhân</h2>
-          <p class="text-xs text-slate-600 mt-0.5">Chọn đúng họ tên của em, sau đó nhập điểm thang 10 (có thể dùng dấu chấm hoặc dấu phẩy).</p>
+          <h2 class="text-base font-bold text-slate-800">Phiếu Nhập & Chỉnh Sửa Điểm</h2>
+          <p class="text-xs text-slate-600 mt-0.5">Chọn họ tên học sinh để nhập mới hoặc sửa lại điểm đã nhập (thang điểm 10).</p>
         </div>
 
         <form id="scoreForm" class="p-6 space-y-5">
@@ -97,12 +97,12 @@
             <p id="studentStatusNote" class="text-xs mt-1.5 hidden"></p>
           </div>
 
-          <!-- Nhập điểm 8 môn (Đã ẩn hoàn toàn phần tính ĐTB tạm tính) -->
+          <!-- Nhập điểm 8 môn (Ẩn hoàn toàn điểm trung bình) -->
           <div>
             <div class="flex items-center justify-between mb-2">
               <label class="block text-sm font-semibold text-slate-700">2. Điểm các môn học <span class="text-red-500">*</span></label>
               <span class="text-xs font-medium px-2.5 py-1 rounded-full bg-slate-100 text-slate-500">
-                🔒 Kết quả tổng kết được giữ bí mật
+                🔒 Điểm trung bình được giữ bí mật
               </span>
             </div>
 
@@ -152,7 +152,7 @@
 
           <div class="pt-2 flex items-center gap-3">
             <button type="submit" id="submitBtn" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 px-4 rounded-xl shadow-sm transition flex items-center justify-center gap-2">
-              <span>Gửi Điểm</span>
+              <span id="submitBtnText">Gửi Điểm</span>
             </button>
             <button type="button" onclick="resetForm()" class="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-600 hover:bg-slate-100 text-sm font-medium transition">
               Xóa trắng
@@ -161,7 +161,7 @@
         </form>
       </div>
 
-      <!-- Thẻ thông báo sau khi nộp xong (Không lộ điểm tổng kết) -->
+      <!-- Thẻ thông báo sau khi nộp xong -->
       <div id="postSubmitHonorCard" class="hidden bg-gradient-to-r from-amber-500 to-orange-500 rounded-2xl p-5 text-white shadow-lg flex flex-col sm:flex-row items-center justify-between gap-4">
         <div class="flex items-center gap-3.5">
           <div class="text-3xl bg-white/20 p-2.5 rounded-xl">🏆</div>
@@ -176,7 +176,7 @@
       </div>
     </section>
 
-    <!-- TAB 2: BẢNG TỔNG HỢP (CHỈ HIỆN KHI GIÁO VIÊN ĐÃ MỞ KHÓA BẰNG MẬT KHẨU) -->
+    <!-- TAB 2: BẢNG TỔNG HỢP (ĐÃ GIẤU HOÀN TOÀN CỘT & THỐNG KÊ ĐTB) -->
     <section id="viewTable" class="hidden space-y-4">
       <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-3">
         <div class="flex items-center gap-2">
@@ -190,7 +190,7 @@
         </button>
       </div>
 
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
           <p class="text-xs text-slate-500 font-medium">Tổng sĩ số</p>
           <p class="text-2xl font-bold text-slate-800 mt-1">44</p>
@@ -202,10 +202,6 @@
         <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
           <p class="text-xs text-rose-600 font-medium">Chưa nộp</p>
           <p class="text-2xl font-bold text-rose-600 mt-1" id="statPending">44</p>
-        </div>
-        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-          <p class="text-xs text-indigo-600 font-medium">ĐTB chung cả lớp</p>
-          <p class="text-2xl font-bold text-indigo-600 mt-1" id="statClassAvg">--</p>
         </div>
       </div>
 
@@ -242,7 +238,6 @@
               <th class="py-3 px-2 font-bold text-center">Tin</th>
               <th class="py-3 px-2 font-bold text-center">Sử-Địa</th>
               <th class="py-3 px-2 font-bold text-center">T.Anh</th>
-              <th class="py-3 px-3 font-bold text-center text-indigo-700">ĐTB</th>
               <th class="py-3 px-3 font-bold text-center">Thao tác</th>
             </tr>
           </thead>
@@ -252,7 +247,7 @@
       </div>
     </section>
 
-    <!-- TAB 3: TẤM BẢNG VÀNG VINH DANH SÂN KHẤU -->
+    <!-- TAB 3: TẤM BẢNG VÀNG VINH DANH SÂN KHẤU (ĐÃ GIẤU ĐTB) -->
     <section id="viewHonor" class="hidden space-y-6">
 
       <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-3">
@@ -307,7 +302,7 @@
             LỚP 8A1
           </div>
           <p class="text-xs sm:text-sm text-emerald-100 font-semibold tracking-widest uppercase mt-1">
-            ✦ Chúc mừng các em đạt điểm cao nhất ✦
+            ✦ Chúc mừng các em đạt thành tích xuất sắc nhất ✦
           </p>
         </div>
 
@@ -458,14 +453,12 @@
     }
 
     function switchTab(tab) {
-      // Nếu quay về tab Nhập điểm -> Tự động khóa lại khu vực giáo viên/vinh danh
       if (tab === 'form' && isHonorUnlocked) {
         isHonorUnlocked = false;
         revealedCount = 0;
         updateHonorLockUI();
       }
 
-      // Chặn mở tab Bảng tổng hợp hoặc Vinh danh nếu chưa mở khóa
       if ((tab === 'table' || tab === 'honor') && !isHonorUnlocked) {
         requestHonorTab();
         return;
@@ -541,16 +534,30 @@
       showToast('🔒 Đã khóa Bảng Vinh Danh.');
     }
 
+    // Tính ngầm ĐTB để xếp hạng Top chính xác nhưng không hiển thị ra màn hình
+    function computeHiddenAvg(rec) {
+      if (!rec) return NaN;
+      if (rec.dtb !== undefined && rec.dtb !== '' && !isNaN(parseFloat(rec.dtb))) {
+        return parseFloat(rec.dtb);
+      }
+      let sum = 0, count = 0;
+      SUBJECT_KEYS.forEach(k => {
+        const v = parseFloat(rec[k]);
+        if (!isNaN(v)) { sum += v; count++; }
+      });
+      return count > 0 ? sum / count : NaN;
+    }
+
     function getTopStudentsList() {
       const topLimit = parseInt(document.getElementById('topCountSelect').value, 10) || 5;
       const submittedList = STUDENTS
-        .filter(name => records[name] && !isNaN(parseFloat(records[name].dtb)))
-        .map(name => ({ name, ...records[name], dtbNum: parseFloat(records[name].dtb) }))
-        .sort((a, b) => b.dtbNum - a.dtbNum);
+        .filter(name => records[name] && !isNaN(computeHiddenAvg(records[name])))
+        .map(name => ({ name, ...records[name], _rankScore: computeHiddenAvg(records[name]) }))
+        .sort((a, b) => b._rankScore - a._rankScore);
 
       let currentRank = 1;
       submittedList.forEach((item, idx) => {
-        if (idx > 0 && item.dtbNum < submittedList[idx - 1].dtbNum) {
+        if (idx > 0 && item._rankScore < submittedList[idx - 1]._rankScore) {
           currentRank = idx + 1;
         }
         item.rank = currentRank;
@@ -578,7 +585,7 @@
             confetti({ particleCount: 55, spread: 60, origin: { y: 0.7 } });
           }
         }
-        showToast(`🎉 Chúc mừng Hạng ${student.rank}: ${student.name} (${student.dtb} điểm)!`);
+        showToast(`🎉 Chúc mừng Hạng ${student.rank}: ${student.name}!`);
       }
     }
 
@@ -636,19 +643,23 @@
           const isJustNow = idx === newlyRevealedIdx;
 
           let medal = '🎖️';
+          let titleLabel = 'Gương Mặt Tiêu Biểu';
           let cardStyle = 'bg-white/95 text-slate-800 border-amber-300';
           let badgeStyle = 'bg-indigo-600 text-white';
 
           if (student.rank === 1) {
             medal = '👑';
+            titleLabel = 'Quán Quân Lớp 8A1';
             cardStyle = 'bg-gradient-to-b from-amber-100 via-yellow-50 to-white text-slate-900 border-amber-400 ring-4 ring-amber-400/40';
             badgeStyle = 'bg-amber-500 text-slate-950';
           } else if (student.rank === 2) {
             medal = '🥈';
+            titleLabel = 'Á Quân Lớp 8A1';
             cardStyle = 'bg-gradient-to-b from-slate-100 to-white text-slate-900 border-slate-300 ring-2 ring-slate-300/40';
             badgeStyle = 'bg-slate-700 text-white';
           } else if (student.rank === 3) {
             medal = '🥉';
+            titleLabel = 'Quý Quân Lớp 8A1';
             cardStyle = 'bg-gradient-to-b from-orange-100 to-white text-slate-900 border-orange-300 ring-2 ring-orange-300/40';
             badgeStyle = 'bg-orange-600 text-white';
           }
@@ -675,20 +686,17 @@
                   Hạng ${student.rank}
                 </span>
               </div>
-              <h3 class="text-lg sm:text-xl font-black text-slate-900 mt-1">${student.name}</h3>
-              <div class="mt-2 px-4 py-1 rounded-xl bg-emerald-700 text-amber-300 font-black text-lg shadow-xs">
-                ĐTB: ${student.dtb}
+              <h3 class="text-xl sm:text-2xl font-black text-slate-900 mt-1.5">${student.name}</h3>
+              <div class="mt-2.5 px-3.5 py-1 rounded-full bg-emerald-700 text-amber-200 font-bold text-xs tracking-wide uppercase">
+                ✨ ${titleLabel}
               </div>
-              <p class="text-[11px] text-slate-600 mt-2 font-medium">
-                Toán: <b>${student.toan}</b> • Văn: <b>${student.nguVan}</b> • Anh: <b>${student.tiengAnh}</b>
-              </p>
             </div>
           `;
         }).join('');
       }
 
       const allSubmitted = STUDENTS
-        .filter(name => records[name] && !isNaN(parseFloat(records[name].dtb)))
+        .filter(name => records[name])
         .map(name => ({ name, ...records[name] }));
 
       const leadersGrid = document.getElementById('subjectLeadersGrid');
@@ -726,7 +734,7 @@
       }).join('');
     }
 
-    // ==================== DROPDOWN CHỌN HỌC SINH (ĐÃ ẨN TRẠNG THÁI & ĐIỂM CŨ) ====================
+    // ==================== DROPDOWN CHỌN HỌC SINH (CHO PHÉP CHỈNH SỬA ĐIỂM ĐÃ NHẬP) ====================
     function showDropdown() {
       filterStudents();
       document.getElementById('studentDropdown').classList.remove('hidden');
@@ -753,32 +761,39 @@
       }
       dd.innerHTML = list.map((name) => {
         const idx = STUDENTS.indexOf(name) + 1;
+        const done = !!records[name];
         return `
-          <div onclick="selectStudent('${name}', false)" class="px-4 py-2.5 hover:bg-indigo-50 cursor-pointer flex items-center justify-between text-sm">
+          <div onclick="selectStudent('${name}')" class="px-4 py-2.5 hover:bg-indigo-50 cursor-pointer flex items-center justify-between text-sm">
             <span><b class="text-slate-400 mr-1.5">${idx}.</b> ${name}</span>
+            ${done
+              ? '<span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">Đã nộp • Sửa</span>'
+              : '<span class="text-[11px] font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">Chưa nộp</span>'}
           </div>
         `;
       }).join('');
     }
 
-    function selectStudent(name, prefillForTeacher = false) {
+    function selectStudent(name) {
       document.getElementById('studentSearchInput').value = name;
       document.getElementById('selectedStudent').value = name;
       document.getElementById('studentDropdown').classList.add('hidden');
 
       const note = document.getElementById('studentStatusNote');
-      if (prefillForTeacher && records[name]) {
-        // Chỉ điền sẵn điểm cũ khi giáo viên bấm nút "Sửa" từ Bảng Tổng Hợp đã mở khóa
-        note.textContent = `✏️ Giáo viên đang chỉnh sửa điểm cho học sinh ${name}.`;
+      const submitBtnText = document.getElementById('submitBtnText');
+
+      if (records[name]) {
+        // Tự động điền lại điểm 8 môn đã nhập để chỉnh sửa (không hiển thị ĐTB)
+        note.textContent = `✏️ ${name} đã nộp điểm trước đó. Bạn có thể chỉnh sửa trực tiếp các môn bên dưới và lưu lại.`;
         note.className = 'text-xs mt-1.5 text-amber-600 font-medium';
+        submitBtnText.textContent = 'Cập Nhật Điểm';
         SUBJECT_KEYS.forEach(k => {
           const el = document.querySelector(`[data-subject="${k}"]`);
-          if (el && records[name][k] !== undefined) el.value = records[name][k];
+          if (el) el.value = records[name][k] !== undefined ? records[name][k] : '';
         });
       } else {
-        // Học sinh tự chọn tên -> Giữ trống các ô điểm, không lộ dữ liệu đã nhập
-        note.textContent = `✓ Đang nhập điểm cho học sinh ${name}.`;
+        note.textContent = `✓ Đang nhập điểm mới cho học sinh ${name}.`;
         note.className = 'text-xs mt-1.5 text-emerald-600 font-medium';
+        submitBtnText.textContent = 'Gửi Điểm';
         SUBJECT_KEYS.forEach(k => {
           const el = document.querySelector(`[data-subject="${k}"]`);
           if (el) el.value = '';
@@ -800,7 +815,7 @@
       }
     }
 
-    // ==================== GỬI FORM NHẬP ĐIỂM ====================
+    // ==================== GỬI / CẬP NHẬT FORM NHẬP ĐIỂM ====================
     document.getElementById('scoreForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const nameInput = document.getElementById('studentSearchInput').value.trim();
@@ -811,6 +826,7 @@
         return;
       }
 
+      const isEdit = !!records[matchedName];
       const payload = { name: matchedName };
       let sum = 0;
 
@@ -825,7 +841,7 @@
         sum += payload[key];
       }
 
-      // Vẫn tính ngầm ĐTB để gửi về Google Sheets & xếp hạng Vinh danh, nhưng không hiện ra màn hình nhập
+      // Tính ngầm ĐTB để lưu Google Sheets & xếp hạng Vinh danh, không hiển thị trên giao diện
       payload.dtb = Number((sum / SUBJECT_KEYS.length).toFixed(2));
       payload.timestamp = new Date().toLocaleString('vi-VN');
 
@@ -833,10 +849,12 @@
       localStorage.setItem('diem_8a1_records', JSON.stringify(records));
       renderTable();
 
+      const btn = document.getElementById('submitBtn');
+      const btnText = document.getElementById('submitBtnText');
+
       if (scriptUrl) {
-        const btn = document.getElementById('submitBtn');
         btn.disabled = true;
-        btn.innerHTML = '<span>Đang gửi lên hệ thống...</span>';
+        btnText.textContent = isEdit ? 'Đang cập nhật...' : 'Đang gửi điểm...';
         try {
           await fetch(scriptUrl, {
             method: 'POST',
@@ -844,20 +862,26 @@
             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
             body: JSON.stringify(payload)
           });
-          showToast(`✅ Đã gửi điểm của ${matchedName} thành công!`);
+          showToast(isEdit
+            ? `✅ Đã cập nhật điểm mới cho ${matchedName}!`
+            : `✅ Đã gửi điểm của ${matchedName} thành công!`);
           setTimeout(() => syncFromGoogleSheet(false), 1500);
         } catch (err) {
           showToast('Lỗi kết nối mạng, đã lưu tạm trên trình duyệt!', true);
         } finally {
           btn.disabled = false;
-          btn.innerHTML = '<span>Gửi Điểm</span>';
+          btnText.textContent = 'Gửi Điểm';
         }
       } else {
-        showToast(`✅ Đã ghi nhận điểm của ${matchedName} thành công!`);
+        showToast(isEdit
+          ? `✅ Đã cập nhật điểm của ${matchedName}!`
+          : `✅ Đã ghi nhận điểm của ${matchedName}!`);
       }
 
       const postCard = document.getElementById('postSubmitHonorCard');
-      document.getElementById('postSubmitTitle').textContent = `Đã ghi nhận điểm của ${matchedName} thành công!`;
+      document.getElementById('postSubmitTitle').textContent = isEdit
+        ? `Đã cập nhật lại điểm của ${matchedName} thành công!`
+        : `Đã ghi nhận điểm của ${matchedName} thành công!`;
       postCard.classList.remove('hidden');
 
       resetForm();
@@ -867,29 +891,24 @@
       document.getElementById('scoreForm').reset();
       document.getElementById('selectedStudent').value = '';
       document.getElementById('studentStatusNote').classList.add('hidden');
+      document.getElementById('submitBtnText').textContent = 'Gửi Điểm';
     }
 
-    // ==================== BẢNG TỔNG HỢP (DÀNH CHO GIÁO VIÊN) ====================
+    // ==================== BẢNG TỔNG HỢP (KHÔNG HIỆN CỘT ĐTB) ====================
     function renderTable() {
       const search = document.getElementById('tableSearchInput').value.toLowerCase().trim();
       const filter = document.getElementById('statusFilter').value;
       const tbody = document.getElementById('scoreTableBody');
 
       let submittedCount = 0;
-      let totalAvg = 0;
-
       STUDENTS.forEach(name => {
-        if (records[name]) {
-          submittedCount++;
-          totalAvg += Number(records[name].dtb || 0);
-        }
+        if (records[name]) submittedCount++;
       });
 
       const badgeEl = document.getElementById('submittedBadge');
       if (badgeEl) badgeEl.textContent = submittedCount;
       document.getElementById('statSubmitted').textContent = submittedCount;
       document.getElementById('statPending').textContent = STUDENTS.length - submittedCount;
-      document.getElementById('statClassAvg').textContent = submittedCount > 0 ? (totalAvg / submittedCount).toFixed(2) : '--';
 
       const rowsHtml = STUDENTS.map((name, index) => {
         const rec = records[name];
@@ -902,7 +921,7 @@
             <tr class="hover:bg-slate-50 text-slate-400">
               <td class="py-2.5 px-3 font-medium">${index + 1}</td>
               <td class="py-2.5 px-3 font-medium text-slate-700">${name}</td>
-              <td colspan="9" class="py-2.5 px-3 text-center text-xs italic">Chưa nhập điểm</td>
+              <td colspan="8" class="py-2.5 px-3 text-center text-xs italic">Chưa nhập điểm</td>
               <td class="py-2.5 px-3 text-center">
                 <button onclick="editStudent('${name}')" class="text-xs font-semibold text-indigo-600 hover:underline">Nhập hộ</button>
               </td>
@@ -922,7 +941,6 @@
             <td class="py-2.5 px-2 text-center">${rec.tinHoc}</td>
             <td class="py-2.5 px-2 text-center">${rec.suDia}</td>
             <td class="py-2.5 px-2 text-center">${rec.tiengAnh}</td>
-            <td class="py-2.5 px-3 text-center font-bold text-indigo-700 bg-indigo-50/40">${rec.dtb}</td>
             <td class="py-2.5 px-3 text-center">
               <button onclick="editStudent('${name}')" class="text-xs font-semibold text-amber-600 hover:underline">Sửa</button>
             </td>
@@ -930,25 +948,25 @@
         `;
       }).join('');
 
-      tbody.innerHTML = rowsHtml || `<tr><td colspan="12" class="py-6 text-center text-slate-400 text-sm">Không có dữ liệu phù hợp</td></tr>`;
+      tbody.innerHTML = rowsHtml || `<tr><td colspan="11" class="py-6 text-center text-slate-400 text-sm">Không có dữ liệu phù hợp</td></tr>`;
     }
 
     function editStudent(name) {
       switchTab('form');
-      selectStudent(name, true);
+      selectStudent(name);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function exportToCSV() {
-      const headers = ['STT', 'Họ và tên', 'Ngữ Văn', 'Công Nghệ', 'Toán', 'GDCD', 'KHTN', 'Tin Học', 'Lịch sử & Địa lí', 'Tiếng Anh', 'Điểm TB', 'Trạng thái'];
+      const headers = ['STT', 'Họ và tên', 'Ngữ Văn', 'Công Nghệ', 'Toán', 'GDCD', 'KHTN', 'Tin Học', 'Lịch sử & Địa lí', 'Tiếng Anh', 'Trạng thái'];
       const lines = [headers.join(',')];
 
       STUDENTS.forEach((name, idx) => {
         const r = records[name];
         if (r) {
-          lines.push([idx + 1, `"${name}"`, r.nguVan, r.congNghe, r.toan, r.gdcd, r.khtn, r.tinHoc, r.suDia, r.tiengAnh, r.dtb, '"Đã nộp"'].join(','));
+          lines.push([idx + 1, `"${name}"`, r.nguVan, r.congNghe, r.toan, r.gdcd, r.khtn, r.tinHoc, r.suDia, r.tiengAnh, '"Đã nộp"'].join(','));
         } else {
-          lines.push([idx + 1, `"${name}"`, '', '', '', '', '', '', '', '', '', '"Chưa nộp"'].join(','));
+          lines.push([idx + 1, `"${name}"`, '', '', '', '', '', '', '', '', '"Chưa nộp"'].join(','));
         }
       });
 
