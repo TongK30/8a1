@@ -45,9 +45,6 @@
         <button onclick="switchTab('form')" id="tabBtnForm" class="px-3.5 py-2 rounded-lg text-sm font-semibold bg-white text-indigo-700 shadow-sm transition">
           Nhập Điểm
         </button>
-        <button onclick="switchTab('table')" id="tabBtnTable" class="px-3.5 py-2 rounded-lg text-sm font-semibold text-indigo-100 hover:bg-indigo-500 transition">
-          Bảng Tổng Hợp (<span id="submittedBadge">0</span>/44)
-        </button>
         <button onclick="requestHonorTab()" id="tabBtnHonor" class="px-3.5 py-2 rounded-lg text-sm font-semibold text-amber-200 hover:bg-indigo-500 transition flex items-center gap-1.5">
           <span>🏆 Bảng Vinh Danh</span>
           <span id="honorLockIcon" class="text-xs">🔒</span>
@@ -100,12 +97,12 @@
             <p id="studentStatusNote" class="text-xs mt-1.5 hidden"></p>
           </div>
 
-          <!-- Nhập điểm 8 môn -->
+          <!-- Nhập điểm 8 môn (Đã ẩn hoàn toàn phần tính ĐTB tạm tính) -->
           <div>
             <div class="flex items-center justify-between mb-2">
               <label class="block text-sm font-semibold text-slate-700">2. Điểm các môn học <span class="text-red-500">*</span></label>
-              <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700">
-                ĐTB tạm tính: <span id="liveAverage">--</span>
+              <span class="text-xs font-medium px-2.5 py-1 rounded-full bg-slate-100 text-slate-500">
+                🔒 Kết quả tổng kết được giữ bí mật
               </span>
             </div>
 
@@ -164,13 +161,13 @@
         </form>
       </div>
 
-      <!-- Thẻ thông báo sau khi nộp xong -> Dẫn tới nhập mật khẩu xem vinh danh -->
+      <!-- Thẻ thông báo sau khi nộp xong (Không lộ điểm tổng kết) -->
       <div id="postSubmitHonorCard" class="hidden bg-gradient-to-r from-amber-500 to-orange-500 rounded-2xl p-5 text-white shadow-lg flex flex-col sm:flex-row items-center justify-between gap-4">
         <div class="flex items-center gap-3.5">
           <div class="text-3xl bg-white/20 p-2.5 rounded-xl">🏆</div>
           <div>
             <h3 class="font-bold text-base" id="postSubmitTitle">Đã ghi nhận điểm thành công!</h3>
-            <p class="text-xs text-amber-50 mt-0.5">Khu vực Bảng Vinh Danh đang được khóa bảo mật.</p>
+            <p class="text-xs text-amber-50 mt-0.5">Kết quả xếp hạng sẽ được công bố tại Bảng Vinh Danh.</p>
           </div>
         </div>
         <button onclick="requestHonorTab()" class="w-full sm:w-auto px-4 py-2.5 bg-white text-amber-700 hover:bg-amber-50 font-bold text-sm rounded-xl shadow transition whitespace-nowrap">
@@ -179,8 +176,20 @@
       </div>
     </section>
 
-    <!-- TAB 2: BẢNG TỔNG HỢP GIÁO VIÊN -->
+    <!-- TAB 2: BẢNG TỔNG HỢP (CHỈ HIỆN KHI GIÁO VIÊN ĐÃ MỞ KHÓA BẰNG MẬT KHẨU) -->
     <section id="viewTable" class="hidden space-y-4">
+      <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-2">
+          <button onclick="switchTab('honor')" class="px-3.5 py-2 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-900 text-xs font-bold transition">
+            ← Quay lại Bảng Vinh Danh
+          </button>
+          <span class="text-sm font-bold text-slate-700">Bảng Tổng Hợp Điểm (Giáo Viên)</span>
+        </div>
+        <button onclick="lockHonorBoard()" class="px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition">
+          🔒 Khóa lại
+        </button>
+      </div>
+
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
           <p class="text-xs text-slate-500 font-medium">Tổng sĩ số</p>
@@ -269,6 +278,10 @@
 
           <button onclick="resetHonorReveal()" title="Ẩn lại để bấm công bố từ đầu" class="px-3.5 py-2.5 rounded-xl border border-slate-300 hover:bg-slate-100 text-slate-600 text-xs font-semibold transition">
             ↺ Ẩn lại
+          </button>
+
+          <button onclick="switchTab('table')" title="Xem danh sách điểm chi tiết" class="px-3.5 py-2.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-bold transition">
+            📋 Bảng điểm (<span id="submittedBadge">0</span>/44)
           </button>
 
           <button onclick="lockHonorBoard()" title="Khóa ngay lập tức" class="px-3.5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition">
@@ -381,9 +394,9 @@
 
   <script>
     // =========================================================================
-    // 👇 ĐÃ GẮN LINK API MỚI CỦA BẠN & MẬT KHẨU BẢO MẬT 👇
+    // 👇 LINK API GOOGLE SHEETS & MẬT KHẨU BẢO MẬT 👇
     const DEFAULT_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwFVtXZk5PJ9n85vve1K5f7ZPcadrlX_v3y9bVkyL1oTShNhw26gHJ3W7KR7M7uGDFh/exec";
-    const HONOR_SECRET_PASS = "8A1VIP"; // Mật khẩu mở Bảng Vinh Danh (ẩn hoàn toàn trên giao diện)
+    const HONOR_SECRET_PASS = "8A1VIP";
     // =========================================================================
 
     const STUDENTS = [
@@ -445,10 +458,17 @@
     }
 
     function switchTab(tab) {
-      if (tab !== 'honor' && isHonorUnlocked) {
+      // Nếu quay về tab Nhập điểm -> Tự động khóa lại khu vực giáo viên/vinh danh
+      if (tab === 'form' && isHonorUnlocked) {
         isHonorUnlocked = false;
         revealedCount = 0;
         updateHonorLockUI();
+      }
+
+      // Chặn mở tab Bảng tổng hợp hoặc Vinh danh nếu chưa mở khóa
+      if ((tab === 'table' || tab === 'honor') && !isHonorUnlocked) {
+        requestHonorTab();
+        return;
       }
 
       document.getElementById('viewForm').classList.toggle('hidden', tab !== 'form');
@@ -459,11 +479,8 @@
         ? 'px-3.5 py-2 rounded-lg text-sm font-semibold bg-white text-indigo-700 shadow-sm transition'
         : 'px-3.5 py-2 rounded-lg text-sm font-semibold text-indigo-100 hover:bg-indigo-500 transition';
 
-      document.getElementById('tabBtnTable').className = tab === 'table'
-        ? 'px-3.5 py-2 rounded-lg text-sm font-semibold bg-white text-indigo-700 shadow-sm transition'
-        : 'px-3.5 py-2 rounded-lg text-sm font-semibold text-indigo-100 hover:bg-indigo-500 transition';
-
-      document.getElementById('tabBtnHonor').className = tab === 'honor'
+      const isAdminTab = (tab === 'honor' || tab === 'table');
+      document.getElementById('tabBtnHonor').className = isAdminTab
         ? 'px-3.5 py-2 rounded-lg text-sm font-semibold bg-amber-400 text-slate-900 shadow-sm transition flex items-center gap-1.5'
         : 'px-3.5 py-2 rounded-lg text-sm font-semibold text-amber-200 hover:bg-indigo-500 transition flex items-center gap-1.5';
 
@@ -709,7 +726,7 @@
       }).join('');
     }
 
-    // ==================== DROPDOWN CHỌN HỌC SINH ====================
+    // ==================== DROPDOWN CHỌN HỌC SINH (ĐÃ ẨN TRẠNG THÁI & ĐIỂM CŨ) ====================
     function showDropdown() {
       filterStudents();
       document.getElementById('studentDropdown').classList.remove('hidden');
@@ -736,35 +753,36 @@
       }
       dd.innerHTML = list.map((name) => {
         const idx = STUDENTS.indexOf(name) + 1;
-        const done = !!records[name];
         return `
-          <div onclick="selectStudent('${name}')" class="px-4 py-2.5 hover:bg-indigo-50 cursor-pointer flex items-center justify-between text-sm">
+          <div onclick="selectStudent('${name}', false)" class="px-4 py-2.5 hover:bg-indigo-50 cursor-pointer flex items-center justify-between text-sm">
             <span><b class="text-slate-400 mr-1.5">${idx}.</b> ${name}</span>
-            ${done
-              ? '<span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">Đã nộp</span>'
-              : '<span class="text-[11px] font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">Chưa nộp</span>'}
           </div>
         `;
       }).join('');
     }
 
-    function selectStudent(name) {
+    function selectStudent(name, prefillForTeacher = false) {
       document.getElementById('studentSearchInput').value = name;
       document.getElementById('selectedStudent').value = name;
       document.getElementById('studentDropdown').classList.add('hidden');
 
       const note = document.getElementById('studentStatusNote');
-      if (records[name]) {
-        note.textContent = `⚠️ ${name} đã nộp điểm trước đó (ĐTB: ${records[name].dtb}). Gửi lại sẽ cập nhật điểm mới.`;
+      if (prefillForTeacher && records[name]) {
+        // Chỉ điền sẵn điểm cũ khi giáo viên bấm nút "Sửa" từ Bảng Tổng Hợp đã mở khóa
+        note.textContent = `✏️ Giáo viên đang chỉnh sửa điểm cho học sinh ${name}.`;
         note.className = 'text-xs mt-1.5 text-amber-600 font-medium';
         SUBJECT_KEYS.forEach(k => {
           const el = document.querySelector(`[data-subject="${k}"]`);
           if (el && records[name][k] !== undefined) el.value = records[name][k];
         });
-        calculateLiveAverage();
       } else {
-        note.textContent = `✓ Đang nhập điểm mới cho học sinh ${name}.`;
+        // Học sinh tự chọn tên -> Giữ trống các ô điểm, không lộ dữ liệu đã nhập
+        note.textContent = `✓ Đang nhập điểm cho học sinh ${name}.`;
         note.className = 'text-xs mt-1.5 text-emerald-600 font-medium';
+        SUBJECT_KEYS.forEach(k => {
+          const el = document.querySelector(`[data-subject="${k}"]`);
+          if (el) el.value = '';
+        });
       }
     }
 
@@ -780,19 +798,6 @@
       } else {
         e.target.classList.remove('border-rose-500', 'bg-rose-50');
       }
-      calculateLiveAverage();
-    }
-
-    function calculateLiveAverage() {
-      let sum = 0, count = 0;
-      document.querySelectorAll('.score-input').forEach(inp => {
-        const v = parseFloat(inp.value);
-        if (!isNaN(v) && v >= 0 && v <= 10) {
-          sum += v;
-          count++;
-        }
-      });
-      document.getElementById('liveAverage').textContent = count > 0 ? (sum / count).toFixed(2) : '--';
     }
 
     // ==================== GỬI FORM NHẬP ĐIỂM ====================
@@ -820,10 +825,10 @@
         sum += payload[key];
       }
 
+      // Vẫn tính ngầm ĐTB để gửi về Google Sheets & xếp hạng Vinh danh, nhưng không hiện ra màn hình nhập
       payload.dtb = Number((sum / SUBJECT_KEYS.length).toFixed(2));
       payload.timestamp = new Date().toLocaleString('vi-VN');
 
-      // Lưu cục bộ ngay lập tức
       records[matchedName] = payload;
       localStorage.setItem('diem_8a1_records', JSON.stringify(records));
       renderTable();
@@ -831,7 +836,7 @@
       if (scriptUrl) {
         const btn = document.getElementById('submitBtn');
         btn.disabled = true;
-        btn.innerHTML = '<span>Đang gửi lên Google Sheets...</span>';
+        btn.innerHTML = '<span>Đang gửi lên hệ thống...</span>';
         try {
           await fetch(scriptUrl, {
             method: 'POST',
@@ -839,7 +844,7 @@
             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
             body: JSON.stringify(payload)
           });
-          showToast(`✅ Đã gửi điểm của ${matchedName} lên Google Sheets!`);
+          showToast(`✅ Đã gửi điểm của ${matchedName} thành công!`);
           setTimeout(() => syncFromGoogleSheet(false), 1500);
         } catch (err) {
           showToast('Lỗi kết nối mạng, đã lưu tạm trên trình duyệt!', true);
@@ -848,11 +853,11 @@
           btn.innerHTML = '<span>Gửi Điểm</span>';
         }
       } else {
-        showToast(`✅ Đã lưu điểm của ${matchedName} (ĐTB: ${payload.dtb})!`);
+        showToast(`✅ Đã ghi nhận điểm của ${matchedName} thành công!`);
       }
 
       const postCard = document.getElementById('postSubmitHonorCard');
-      document.getElementById('postSubmitTitle').textContent = `Đã ghi nhận điểm của ${matchedName} (ĐTB: ${payload.dtb})!`;
+      document.getElementById('postSubmitTitle').textContent = `Đã ghi nhận điểm của ${matchedName} thành công!`;
       postCard.classList.remove('hidden');
 
       resetForm();
@@ -862,10 +867,9 @@
       document.getElementById('scoreForm').reset();
       document.getElementById('selectedStudent').value = '';
       document.getElementById('studentStatusNote').classList.add('hidden');
-      document.getElementById('liveAverage').textContent = '--';
     }
 
-    // ==================== BẢNG TỔNG HỢP ====================
+    // ==================== BẢNG TỔNG HỢP (DÀNH CHO GIÁO VIÊN) ====================
     function renderTable() {
       const search = document.getElementById('tableSearchInput').value.toLowerCase().trim();
       const filter = document.getElementById('statusFilter').value;
@@ -881,7 +885,8 @@
         }
       });
 
-      document.getElementById('submittedBadge').textContent = submittedCount;
+      const badgeEl = document.getElementById('submittedBadge');
+      if (badgeEl) badgeEl.textContent = submittedCount;
       document.getElementById('statSubmitted').textContent = submittedCount;
       document.getElementById('statPending').textContent = STUDENTS.length - submittedCount;
       document.getElementById('statClassAvg').textContent = submittedCount > 0 ? (totalAvg / submittedCount).toFixed(2) : '--';
@@ -930,7 +935,7 @@
 
     function editStudent(name) {
       switchTab('form');
-      selectStudent(name);
+      selectStudent(name, true);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
